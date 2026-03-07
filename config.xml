@@ -9,7 +9,7 @@
     <author email="you@example.com" href="https://yourwebsite.com">Your Name</author>
 
     <!-- Point Cordova at your game's index.html -->
-    <content src="index.html" />
+    <content src="game/index.html" />
 
     <access origin="*" />
     <allow-intent href="http://*/*" />
