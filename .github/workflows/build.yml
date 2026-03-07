@@ -14,10 +14,12 @@ jobs:
           distribution: 'temurin'
       - name: Install Cordova
         run: npm install -g cordova
+      - name: Install npm deps
+        run: npm install
       - name: Add Android platform
         run: cordova platform add android
-- name: Install plugins
-      run: cordova plugin add cordova-plugin-splashscreen
+      - name: Install plugins
+        run: cordova plugin add cordova-plugin-splashscreen
       - name: Build APK
         run: cordova build android
       - name: Upload APK
