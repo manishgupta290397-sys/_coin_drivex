@@ -720,7 +720,10 @@
     </div>
 
 <script>
-window.onerror = function(message, source, lineno, colno, error) { return false; };
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('[GameError]', message, 'at', source + ':' + lineno + ':' + colno, error);
+    return false; // prevent default browser error UI, but errors are now logged
+};
 
 // ─── AD MANAGER (Adsterra) ───────────────────────────────────────────────────
 // Adsterra uses a JavaScript SDK loaded via script tag.
@@ -751,7 +754,7 @@ const AdManager = {
     get REWARDED_INTER_ID()  { return this.TEST_MODE ? this._TEST_REWARDED_INTER  : this._REAL_REWARDED_INTER; },
 
     interstitialCounter: 0,
-    interstitialFrequency: 1, // show interstitial every game over
+    interstitialFrequency: 3, // show interstitial every 3 game overs (policy-safe)
     rewardCallback: null,
     _admob: null,           // cached Capacitor AdMob plugin reference
 
@@ -904,11 +907,14 @@ const AdManager = {
 };
 // Init AdMob when platform is ready — works for Capacitor AND Cordova
 if (window.Capacitor) {
+    // Capacitor: wait for deviceready
     document.addEventListener('deviceready', () => AdManager.init(), false);
-} else if (document.addEventListener) {
+} else if (window.cordova) {
+    // Cordova: wait for deviceready
     document.addEventListener('deviceready', () => AdManager.init(), false);
-    // Web fallback
-    if (!window.cordova) AdManager.init();
+} else {
+    // Plain web / dev mode: init immediately (ads disabled gracefully inside init())
+    AdManager.init();
 }
 
 const SafeStorage = {
@@ -928,6 +934,9 @@ class NetworkManager {
         //   5. Copy your Master API Key from Account > API Keys
         //   6. Paste both below
         this.JSONBIN_BIN_ID  = '69aa6f47d0ea881f40f43032';
+        // ⚠️ SECURITY WARNING: This API key is exposed to all users in the browser.
+        // Anyone can open DevTools and see it. For production, proxy this through
+        // your own backend server so the key is never sent to the client.
         this.JSONBIN_API_KEY = '$2a$10$NC0SbOiPfqnzpWiJSbk0RuFUkXuxG9DSBkiwVa9pguvu5rdpS0b4O';
         this.localKey = 'heist_leaderboard_local';
         this._saveTimer = null;
@@ -1149,6 +1158,31 @@ const ACHIEVEMENT_DB = [
 ];
 
 let UNIT_BOX, UNIT_CYLINDER, COIN_GEO, TORUS_GEO, ICO_GEO;
+
+// ── Shared Scenery Material Cache ─────────────────────────────────────────────
+// Reusing materials across all Scenery spawns avoids GPU material object churn.
+const SCENERY_MATS = {
+    _cache: {},
+    get(key, factory) {
+        if (!this._cache[key]) this._cache[key] = factory();
+        return this._cache[key];
+    },
+    // Generic building materials
+    get darkBuilding()  { return this.get('darkBuilding',  () => new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 })); },
+    get darkBuilding2() { return this.get('darkBuilding2', () => new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 })); },
+    get windowGlow()    { return this.get('windowGlow',    () => new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xffff00, emissiveIntensity: 0.6, wireframe: true, transparent: true, opacity: 0.3 })); },
+    // Neon street materials
+    get neonBlue()      { return this.get('neonBlue',      () => new THREE.MeshStandardMaterial({ color: 0x0044ff, emissive: 0x0044ff, emissiveIntensity: 2.0 })); },
+    get neonMagenta()   { return this.get('neonMagenta',   () => new THREE.MeshStandardMaterial({ color: 0xff00aa, emissive: 0xff00aa, emissiveIntensity: 2.0 })); },
+    get neonCyan()      { return this.get('neonCyan',      () => new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 2.0 })); },
+    get darkPanel()     { return this.get('darkPanel',     () => new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.9 })); },
+    // Toxic street materials
+    get toxicGreen()    { return this.get('toxicGreen',    () => new THREE.MeshStandardMaterial({ color: 0x88ff00, emissive: 0x44cc00, emissiveIntensity: 1.8 })); },
+    get toxicDark()     { return this.get('toxicDark',     () => new THREE.MeshStandardMaterial({ color: 0x1e2a10, roughness: 0.95 })); },
+    get toxicMetal()    { return this.get('toxicMetal',    () => new THREE.MeshStandardMaterial({ color: 0x3a4a2a, roughness: 0.7, metalness: 0.5 })); },
+    get toxicRust()     { return this.get('toxicRust',     () => new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.9, metalness: 0.3 })); },
+    get sludge()        { return this.get('sludge',        () => new THREE.MeshStandardMaterial({ color: 0x66cc00, emissive: 0x336600, emissiveIntensity: 0.85, roughness: 0.2 })); },
+};
 
 function initAssets() {
     if (typeof THREE === 'undefined') return false;
@@ -1845,22 +1879,21 @@ class Scenery {
 
     _buildGeneric() {
         const h = 5 + Math.random() * 15;
-        const mat = new THREE.MeshStandardMaterial({ color: Math.random()>0.5 ? 0x222222 : 0x111111, roughness: 0.8 });
+        const mat = Math.random() > 0.5 ? SCENERY_MATS.darkBuilding : SCENERY_MATS.darkBuilding2;
         const m = new THREE.Mesh(UNIT_BOX, mat); m.scale.set(4, h, 4); m.position.y = h/2; this.mesh.add(m);
         if(Math.random() > 0.3) {
-            const win = new THREE.Mesh(UNIT_BOX, new THREE.MeshStandardMaterial({color: 0xffff00, emissive: 0xffff00, emissiveIntensity: 0.6, wireframe:true, transparent:true, opacity:0.3}));
+            const win = new THREE.Mesh(UNIT_BOX, SCENERY_MATS.windowGlow);
             win.scale.set(4.1, h*0.8, 4.1); win.position.y = h/2; this.mesh.add(win);
         }
     }
 
     // Neon Metro: street-level lamp posts, neon sign boards, low glowing walls
     _buildNeonStreet(x) {
-        const palette = [0xff00ff, 0x00ffff, 0xff0066, 0x9900ff, 0x00ff99, 0xff9900];
-        const col  = palette[Math.floor(Math.random() * palette.length)];
-        const col2 = palette[Math.floor(Math.random() * palette.length)];
-        const neonA = new THREE.MeshStandardMaterial({ color: col,  emissive: col,  emissiveIntensity: 2.5 });
-        const neonB = new THREE.MeshStandardMaterial({ color: col2, emissive: col2, emissiveIntensity: 2.0 });
-        const dark  = new THREE.MeshStandardMaterial({ color: 0x111122, roughness: 0.9, metalness: 0.4 });
+        // Pick from a small set of pre-cached neon colours to avoid per-spawn material creation
+        const neonOptions = [SCENERY_MATS.neonMagenta, SCENERY_MATS.neonCyan, SCENERY_MATS.neonBlue];
+        const neonA = neonOptions[Math.floor(Math.random() * neonOptions.length)];
+        const neonB = neonOptions[Math.floor(Math.random() * neonOptions.length)];
+        const dark  = SCENERY_MATS.darkPanel;
 
         const pick = Math.floor(Math.random() * 3);
         if (pick === 0) {
@@ -1905,10 +1938,10 @@ class Scenery {
 
     // Toxic Sewers: barrel clusters, ground pipe runs, sludge troughs
     _buildToxicStreet(x) {
-        const toxic = new THREE.MeshStandardMaterial({ color: 0x88ff00, emissive: 0x44cc00, emissiveIntensity: 1.8 });
-        const dark  = new THREE.MeshStandardMaterial({ color: 0x1e2a10, roughness: 0.95 });
-        const metal = new THREE.MeshStandardMaterial({ color: 0x3a4a2a, roughness: 0.7, metalness: 0.5 });
-        const rust  = new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.9, metalness: 0.3 });
+        const toxic = SCENERY_MATS.toxicGreen;
+        const dark  = SCENERY_MATS.toxicDark;
+        const metal = SCENERY_MATS.toxicMetal;
+        const rust  = SCENERY_MATS.toxicRust;
 
         const pick = Math.floor(Math.random() * 3);
         if (pick === 0) {
@@ -1940,8 +1973,7 @@ class Scenery {
             // Open sludge trough
             const trough = new THREE.Mesh(UNIT_BOX, dark);
             trough.scale.set(4.2, 0.32, 1.1); trough.position.set(0, 0.16, 0); this.mesh.add(trough);
-            const sludge = new THREE.MeshStandardMaterial({ color: 0x66cc00, emissive: 0x336600, emissiveIntensity: 0.85, roughness: 0.2 });
-            const pool = new THREE.Mesh(UNIT_BOX, sludge);
+            const pool = new THREE.Mesh(UNIT_BOX, SCENERY_MATS.sludge);
             pool.scale.set(4.0, 0.07, 0.9); pool.position.set(0, 0.36, 0); this.mesh.add(pool);
             [-2.15, 2.15].forEach(wx => {
                 const wall = new THREE.Mesh(UNIT_BOX, metal);
@@ -1951,7 +1983,20 @@ class Scenery {
     }
 
     update(dt, speed) { this.mesh.position.z += speed * dt * 10; if(this.mesh.position.z > 25) { this.markedForDeletion = true; this.dispose(); } }
-    dispose() { this.game.scene.remove(this.mesh); this.mesh.traverse(c => { if(c.isMesh && c.material && c.material.dispose) c.material.dispose(); }); }
+    dispose() {
+        this.game.scene.remove(this.mesh);
+        this.mesh.traverse(c => {
+            if(c.isMesh) {
+                // Always dispose geometry (it's unique per mesh)
+                if(c.geometry) c.geometry.dispose();
+                // Only dispose materials that are NOT in the shared cache
+                if(c.material && c.material.dispose && !Object.values(SCENERY_MATS._cache).includes(c.material)) {
+                    if(Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+                    else c.material.dispose();
+                }
+            }
+        });
+    }
 }
 
 class Entity {
@@ -1968,7 +2013,7 @@ class Entity {
         this.mesh.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
         this.game.scene.add(this.mesh);
     }
-    dispose() { this.mesh.traverse((child) => { if (child.isMesh) { if(Array.isArray(child.material)) child.material.forEach(m => m.dispose()); else child.material.dispose(); } }); this.game.scene.remove(this.mesh); }
+    dispose() { this.mesh.traverse((child) => { if (child.isMesh) { if(child.geometry) child.geometry.dispose(); if(Array.isArray(child.material)) child.material.forEach(m => m.dispose()); else child.material.dispose(); } }); this.game.scene.remove(this.mesh); }
     
     _assignHitbox() {
         // Half-extents match visual mesh size. Lanes = 4 units apart.
@@ -2355,7 +2400,10 @@ class RoadBarrier {
     }
 
     dispose() {
-        this.meshes.forEach(m => this.game.scene.remove(m));
+        this.meshes.forEach(m => {
+            m.traverse(c => { if(c.isMesh && c.geometry) c.geometry.dispose(); });
+            this.game.scene.remove(m);
+        });
         this.meshes = [];
         // Dispose shared materials once
         if (this._mats) {
@@ -2456,7 +2504,7 @@ class FinishLine {
 
     dispose() {
         this.game.scene.remove(this.mesh);
-        this.mesh.traverse(c => { if (c.isMesh && c.material) c.material.dispose(); });
+        this.mesh.traverse(c => { if (c.isMesh) { if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); } });
     }
 }
 
@@ -2503,8 +2551,8 @@ class Game {
             const old = document.getElementById('gameCanvas'); if (old) old.remove();
             const canvas = document.createElement('canvas'); canvas.id = 'gameCanvas'; this.container.appendChild(canvas);
             const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, powerPreference: "high-performance", precision: "highp", stencil: false, depth: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
-            renderer.shadowMap.enabled = true; 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = 1.0;
@@ -3726,7 +3774,7 @@ window.onload = () => {
             document.head.appendChild(s);
         });
 
-        const BASE = './';
+        const BASE = ''; // Loaders are bundled locally for offline/Cordova APK support
         Promise.all([
             loadScript(BASE + 'GLTFLoader.js'),
             loadScript(BASE + 'OBJLoader.js'),
