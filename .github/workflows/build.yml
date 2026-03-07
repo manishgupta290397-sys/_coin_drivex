@@ -16,8 +16,8 @@ jobs:
         run: npm install -g cordova
       - name: Add Android platform
         run: cordova platform add android
-        run: |
-          cordova plugin add cordova-plugin-splashscreen
+- name: Install plugins
+      run: cordova plugin add cordova-plugin-splashscreen
       - name: Build APK
         run: cordova build android
       - name: Upload APK
