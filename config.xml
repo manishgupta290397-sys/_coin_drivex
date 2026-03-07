@@ -1,15 +1,46 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.manishgupta.coindrivex" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>CoinDriveX</name>
-    <description>
-        A sample Apache Cordova application that responds to the deviceready event.
-    </description>
-    <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
-        Apache Cordova Team
-    </author>
+<widget id="com.yourname.coindrivex"
+        version="1.0.0"
+        xmlns="http://www.w3.org/ns/widgets"
+        xmlns:cdv="http://cordova.apache.org/ns/1.0">
+
+    <name>Coin DriveX</name>
+    <description>Coin DriveX: Ultimate Heist</description>
+    <author email="you@example.com" href="https://yourwebsite.com">Your Name</author>
+
+    <!-- Point Cordova at your game's index.html -->
     <content src="index.html" />
+
+    <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-<access origin="*"/>
-<allow-navigation href="*"/>
+
+    <!-- Fullscreen landscape game -->
+    <preference name="Fullscreen" value="true" />
+    <preference name="Orientation" value="landscape" />
+    <preference name="BackgroundColor" value="0xff101010" />
+    <preference name="LoadUrlTimeoutValue" value="700000" />
+    <preference name="webviewbounce" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="KeyboardDisplayRequiresUserAction" value="false" />
+
+    <!-- Android SDK versions -->
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="android-targetSdkVersion" value="34" />
+
+    <platform name="android">
+        <!-- ⚠️ REPLACE with your real AdMob App ID from the AdMob dashboard -->
+        <preference name="AdMobAppId" value="ca-app-pub-2765601211878225~6409661215" />
+
+        <!-- Required for WebGL canvas to render correctly -->
+        <preference name="AndroidLaunchMode" value="singleTop" />
+
+        <!-- Keep screen on while game is running -->
+        <preference name="KeepRunning" value="true" />
+
+        <!-- App icon and splash (add your own images) -->
+        <!-- <icon src="res/android/icon.png" /> -->
+        <!-- <splash src="res/android/splash.png" /> -->
+    </platform>
+
 </widget>
