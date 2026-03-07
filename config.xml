@@ -18,7 +18,7 @@
     <!-- Fullscreen landscape game -->
     <preference name="Fullscreen" value="true" />
     <preference name="Orientation" value="landscape" />
-    <preference name="BackgroundColor" value="0xff101010" />
+    <preference name="BackgroundColor" value="#101010" />
     <preference name="LoadUrlTimeoutValue" value="700000" />
     <preference name="webviewbounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
