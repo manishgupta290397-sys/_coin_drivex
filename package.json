@@ -21,9 +21,6 @@
       "android"
     ],
     "plugins": {
-      "admob-plus-cordova": {
-        "APP_ID_ANDROID": "ca-app-pub-xxx~yyy",
-        "PLAY_SERVICES_VERSION": "23.2.0"
       },
       "cordova-plugin-splashscreen": {}
     }
