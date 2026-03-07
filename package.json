@@ -1,8 +1,8 @@
 {
-  "name": "com.manishgupta.coindrivex",
-  "displayName": "CoinDriveX",
+  "name": "coindrivex",
+  "displayName": "Coin DriveX",
   "version": "1.0.0",
-  "description": "A sample Apache Cordova application that responds to the deviceready event.",
+  "description": "Coin DriveX: Ultimate Heist",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,7 @@
   "keywords": [
     "ecosystem:cordova"
   ],
-  "author": "Apache Cordova Team",
+  "author": "Your Name",
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^14.0.0",
@@ -21,7 +21,6 @@
       "android"
     ],
     "plugins": {
-      },
       "cordova-plugin-splashscreen": {}
     }
   }
