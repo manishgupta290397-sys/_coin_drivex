@@ -26,8 +26,8 @@
 
     <!-- Android SDK versions -->
     <preference name="android-minSdkVersion" value="22" />
-    <preference name="android-targetSdkVersion" value="34" />
-
+    <preference name="android-targetSdkVersion" value="35" />
+<preference name="android-compileSdkVersion" value="35" />
     <platform name="android">
         <!-- ⚠️ REPLACE with your real AdMob App ID from the AdMob dashboard -->
         <preference name="AdMobAppId" value="ca-app-pub-2765601211878225~6409661215" />
