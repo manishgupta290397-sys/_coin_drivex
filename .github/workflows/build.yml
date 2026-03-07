@@ -1,0 +1,30 @@
+name: Build APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Install Cordova
+        run: npm install -g cordova
+      - name: Add Android platform
+        run: cordova platform add android
+      - name: Install plugins
+        run: |
+          cordova plugin add admob-plus-cordova
+          cordova plugin add cordova-plugin-whitelist
+          cordova plugin add cordova-plugin-splashscreen
+      - name: Build APK
+        run: cordova build android
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: CoinDriveX-APK
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
