@@ -7,23 +7,21 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "ecosystem:cordova"
-  ],
+  "keywords": ["ecosystem:cordova"],
   "author": "Your Name",
   "license": "Apache-2.0",
   "devDependencies": {
-    "admob-plus-cordova": "^1.23.0",
-    "cordova-android": "^13.0.0",
-    "cordova-plugin-splashscreen": "^6.0.1"
+    "cordova-android": "^14.0.0",
+    "cordova-plugin-splashscreen": "^6.0.1",
+    "cordova-plugin-admob-free": "^0.28.0"
   },
   "cordova": {
-    "platforms": [
-      "android"
-    ],
+    "platforms": ["android"],
     "plugins": {
       "cordova-plugin-splashscreen": {},
-      "admob-plus-cordova": {}
+      "cordova-plugin-admob-free": {
+        "ADMOB_APP_ID": "ca-app-pub-3940256099942544~3347511713"
+      }
     }
   }
 }
