@@ -19,7 +19,9 @@ jobs:
       - name: Add Android platform
         run: cordova platform add android
       - name: Install plugins
-        run: cordova plugin add cordova-plugin-splashscreen
+        run: |
+          cordova plugin add cordova-plugin-splashscreen
+          cordova plugin add admob-plus-cordova@1.23.0
       - name: Build APK
         run: cordova build android
       - name: Upload APK
