@@ -746,7 +746,7 @@ const AdManager = {
         try { await admob.start(); } catch(e) { alert("AdMob start error: " + e); return; }
         this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
         await this._interstitial.load();
-        console.log('[AdMob] ready!');
+        alert("AdMob fully ready! Interstitial loaded!");
     },
     showInterstitial: async function() {
         this.interstitialCounter++;
