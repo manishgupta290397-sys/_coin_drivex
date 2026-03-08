@@ -908,16 +908,7 @@ const AdManager = {
 
 };
 // Init AdMob when platform is ready — works for Capacitor AND Cordova
-if (window.Capacitor) {
-    // Capacitor: wait for deviceready
-    document.addEventListener('deviceready', () => AdManager.init(), false);
-} else if (window.cordova) {
-    // Cordova: wait for deviceready
-    document.addEventListener('deviceready', () => AdManager.init(), false);
-} else {
-    // Plain web / dev mode: init immediately (ads disabled gracefully inside init())
-    AdManager.init();
-}
+document.addEventListener('deviceready', () => AdManager.init(), false);
 
 const SafeStorage = {
     getItem: function(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
