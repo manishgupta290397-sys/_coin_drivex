@@ -871,8 +871,8 @@ const AdManager = {
                 await admob.showRewardVideoAd();
             } else if (this._mode === 'cordova') {
                 const rwAd = new admob.RewardedAd({ adUnitId: this.REWARDED_ID });
-                rwAd.on('reward', () => this._onRewardSuccess());
-                rwAd.on('dismiss', () => {});
+                rwAd.on('admob.ad.reward', () => this._onRewardSuccess());
+                
                 await rwAd.load();
                 await rwAd.show();
             }
@@ -895,7 +895,7 @@ const AdManager = {
                 await admob.prepareRewardVideoAd({ adId: this.REWARDED_INTER_ID });
                 await admob.showRewardVideoAd();
             } else if (this._mode === 'cordova') {
-                const rwAd = new admob.RewardedAd({ adUnitId: this.REWARDED_INTER_ID });
+                const rwAd = new admob.RewardedInterstitialAd({ adUnitId: this.REWARDED_INTER_ID });
                 if (onReward) rwAd.on('reward', () => onReward());
                 await rwAd.load();
                 await rwAd.show();
