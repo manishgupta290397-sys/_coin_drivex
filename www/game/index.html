@@ -739,10 +739,11 @@ const AdManager = {
     INTER_ID:  'ca-app-pub-3940256099942544/1033173712',
     REWARD_ID: 'ca-app-pub-3940256099942544/5224354917',
     interstitialCounter: 0,
-    interstitialFrequency: 3,
+    interstitialFrequency: 1,
     _interstitial: null,
     init: async function() {
-        await admob.start();
+        if (!window.admob) { alert("AdMob plugin missing!"); return; }
+        try { await admob.start(); } catch(e) { alert("AdMob start error: " + e); return; }
         this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
         await this._interstitial.load();
         console.log('[AdMob] ready!');
