@@ -871,7 +871,7 @@ const AdManager = {
                 await admob.showRewardVideoAd();
             } else if (this._mode === 'cordova') {
                 const rwAd = new admob.RewardedAd({ adUnitId: this.REWARDED_ID });
-                rwAd.on('admob.ad.reward', () => this._onRewardSuccess());
+                rwAd.on('reward', () => this._onRewardSuccess());
                 
                 await rwAd.load();
                 await rwAd.show();
