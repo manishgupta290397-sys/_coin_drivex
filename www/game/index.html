@@ -740,23 +740,39 @@ const AdManager = {
     REWARD_ID: 'ca-app-pub-3940256099942544/5224354917',
     interstitialCounter: 0,
     interstitialFrequency: 3,
-    init: function() {
-        admob.setOptions({ publisherId: this.APP_ID, interstitialAdId: this.INTER_ID, rewardAdId: this.REWARD_ID, isTesting: this.TEST_MODE, autoShowInterstitial: false, autoShowRewarded: false });
-        admob.requestInterstitialAd();
+    _interstitial: null,
+    init: async function() {
+        await admob.start();
+        this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
+        await this._interstitial.load();
         console.log('[AdMob] ready!');
     },
-    showInterstitial: function() {
+    showInterstitial: async function() {
         this.interstitialCounter++;
         if (this.interstitialCounter < this.interstitialFrequency) return;
         this.interstitialCounter = 0;
-        admob.showInterstitialAd();
-        admob.requestInterstitialAd();
+        try {
+            await this._interstitial.show();
+            this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
+            await this._interstitial.load();
+        } catch(e) { console.warn('[AdMob] inter error:', e); }
     },
-    showRewarded: function(onReward) {
-        document.addEventListener('onRewardedAd', function() { if (onReward) onReward(); }, {once:true});
-        admob.requestRewardedAd({adId: this.REWARD_ID, isTesting: this.TEST_MODE, autoShow: true});
+    showRewarded: async function(onReward) {
+        try {
+            const ad = new admob.RewardedAd({ adUnitId: this.REWARD_ID });
+            ad.on('reward', () => { if (onReward) onReward(); });
+            await ad.load();
+            await ad.show();
+        } catch(e) { console.warn('[AdMob] reward error:', e); if (onReward) onReward(); }
     },
-    showRewardedInterstitial: function(onReward) { this.showRewarded(onReward); }
+    showRewardedInterstitial: async function(onReward) {
+        try {
+            const ad = new admob.RewardedInterstitialAd({ adUnitId: this.REWARD_ID });
+            ad.on('reward', () => { if (onReward) onReward(); });
+            await ad.load();
+            await ad.show();
+        } catch(e) { console.warn('[AdMob] ri error:', e); if (onReward) onReward(); }
+    }
 };
 document.addEventListener('deviceready', () => AdManager.init(), false);
 
