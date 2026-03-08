@@ -12,16 +12,12 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^14.0.0",
-    "cordova-plugin-splashscreen": "^6.0.1",
-    "cordova-plugin-admob-free": "^0.28.0"
+    "cordova-plugin-splashscreen": "^6.0.1"
   },
   "cordova": {
     "platforms": ["android"],
     "plugins": {
-      "cordova-plugin-splashscreen": {},
-      "cordova-plugin-admob-free": {
-        "ADMOB_APP_ID": "ca-app-pub-3940256099942544~3347511713"
-      }
+      "cordova-plugin-splashscreen": {}
     }
   }
 }
