@@ -747,10 +747,12 @@ const AdManager = {
             alert('OK: admob started!');
         } catch(e) { alert('FAIL start: ' + e); }
         try {
+            alert('Creating InterstitialAd...');
             this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
-            await this._interstitial.load();
+            alert('Created! Now loading...');
+            const loadResult = await Promise.race([this._interstitial.load(), new Promise((r,j) => setTimeout(() => j('TIMEOUT'), 10000))]);
             this._ready = true;
-            alert('OK: interstitial loaded!');
+            alert('OK: interstitial loaded! result:' + JSON.stringify(loadResult));
         } catch(e) { alert('FAIL load: ' + e); }
     },
     showInterstitial: async function() {
