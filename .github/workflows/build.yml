@@ -21,7 +21,7 @@ jobs:
       - name: Install plugins
         run: |
           cordova plugin add cordova-plugin-splashscreen
-          cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-3940256099942544~3347511713"
+          cordova plugin add cordova-admob-free --save
       - name: Build APK
         run: cordova build android
       - name: Upload APK

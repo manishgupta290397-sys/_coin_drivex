@@ -734,180 +734,30 @@ window.onerror = function(message, source, lineno, colno, error) {
 // Replace the zone IDs below with your real ones from Adsterra dashboard.
 // ─────────────────────────────────────────────────────────────────────────────
 const AdManager = {
-    // ── AdMob Unit IDs ────────────────────────────────────────────────────────
-    APP_ID:               'ca-app-pub-2765601211878225~6409661215',
-
-    // Set TEST_MODE = true while AdMob is under review
-    // Set TEST_MODE = false when AdMob approves your app
     TEST_MODE: true,
-
-    // Real IDs (use after AdMob approval)
-    _REAL_INTERSTITIAL:   'ca-app-pub-2765601211878225/5890786466',
-    _REAL_REWARDED:       'ca-app-pub-2765601211878225/5763957675',
-    _REAL_REWARDED_INTER: 'ca-app-pub-2765601211878225/7990336192',
-
-    // Google official test IDs (safe to use before approval)
-    _TEST_INTERSTITIAL:   'ca-app-pub-3940256099942544/1033173712',
-    _TEST_REWARDED:       'ca-app-pub-3940256099942544/5224354917',
-    _TEST_REWARDED_INTER: 'ca-app-pub-3940256099942544/5354046379',
-
-    get INTERSTITIAL_ID()   { return this.TEST_MODE ? this._TEST_INTERSTITIAL   : this._REAL_INTERSTITIAL; },
-    get REWARDED_ID()        { return this.TEST_MODE ? this._TEST_REWARDED        : this._REAL_REWARDED; },
-    get REWARDED_INTER_ID()  { return this.TEST_MODE ? this._TEST_REWARDED_INTER  : this._REAL_REWARDED_INTER; },
-
+    APP_ID:    'ca-app-pub-3940256099942544~3347511713',
+    INTER_ID:  'ca-app-pub-3940256099942544/1033173712',
+    REWARD_ID: 'ca-app-pub-3940256099942544/5224354917',
     interstitialCounter: 0,
-    interstitialFrequency: 3, // show interstitial every 3 game overs (policy-safe)
-    rewardCallback: null,
-    _admob: null,           // cached Capacitor AdMob plugin reference
-
-    // ── Get AdMob plugin — works in both Capacitor AND Cordova ───────────────
-    _getAdMob: function() {
-        if (this._admob) return this._admob;
-        // Capacitor
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-            this._admob = window.Capacitor.Plugins.AdMob;
-            this._mode = 'capacitor';
-            return this._admob;
-        }
-        // Cordova (admob-free or admob-plus plugin)
-        if (window.admob) {
-            this._admob = window.admob;
-            this._mode = 'cordova';
-            return this._admob;
-        }
-        return null;
+    interstitialFrequency: 3,
+    init: function() {
+        admob.setOptions({ publisherId: this.APP_ID, interstitialAdId: this.INTER_ID, rewardAdId: this.REWARD_ID, isTesting: this.TEST_MODE, autoShowInterstitial: false, autoShowRewarded: false });
+        admob.requestInterstitialAd();
+        console.log('[AdMob] ready!');
     },
-
-    _isAvailable: function() { return !!this._getAdMob(); },
-
-    init: async function() {
-        const admob = this._getAdMob();
-        if (!admob) {
-            console.info('[AdMob] Not in Capacitor/Cordova — ads disabled (dev mode).');
-            return;
-        }
-        try {
-            if (this._mode === 'capacitor') {
-                await admob.initialize({ requestTrackingAuthorization: true });
-            } else if (this._mode === 'cordova') {
-                // Cordova admob-plus plugin init
-                await admob.start();
-            }
-            await this._prepareInterstitial();
-            console.info('[AdMob] Initialized (' + this._mode + ') ✓');
-        } catch(e) {
-            console.warn('[AdMob] Init error:', e);
-        }
-    },
-
-    _prepareInterstitial: async function() {
-        const admob = this._getAdMob();
-        if (!admob) return;
-        try {
-            if (this._mode === 'capacitor') {
-                await admob.prepareInterstitial({ adId: this.INTERSTITIAL_ID });
-            } else if (this._mode === 'cordova') {
-                this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTERSTITIAL_ID });
-                await this._interstitial.load();
-            }
-        } catch(e) {}
-    },
-
-    _onRewardSuccess: function() {
-        if (this.rewardCallback) { this.rewardCallback(); this.rewardCallback = null; }
-    },
-
-    _onAdFailed: function() {
-        this.rewardCallback = null;
-        const adBtn = document.getElementById('btn-ad-reward');
-        if (adBtn) {
-            adBtn.innerText = '▶ CLAIM 2X LOOT (AD)';
-            adBtn.style.pointerEvents = 'auto';
-            adBtn.classList.remove('hidden');
-        }
-    },
-
-    // ── Show Interstitial — fires every game over ─────────────────────────────
-    showInterstitial: async function() {
+    showInterstitial: function() {
         this.interstitialCounter++;
         if (this.interstitialCounter < this.interstitialFrequency) return;
         this.interstitialCounter = 0;
-        const admob = this._getAdMob();
-        if (!admob) return;
-        try {
-            if (this._mode === 'capacitor') {
-                await admob.showInterstitial();
-                setTimeout(() => this._prepareInterstitial(), 1000);
-            } else if (this._mode === 'cordova') {
-                if (this._interstitial) {
-                    await this._interstitial.show();
-                    setTimeout(() => this._prepareInterstitial(), 1000);
-                }
-            }
-        } catch(e) {
-            console.warn('[AdMob] Interstitial error:', e);
-            this._prepareInterstitial();
-        }
+        admob.showInterstitialAd();
+        admob.requestInterstitialAd();
     },
-
-    // ── Show Rewarded ad — user earns 2x loot ────────────────────────────────
-    showRewarded: async function(onReward) {
-        this.rewardCallback = onReward;
-        const admob = this._getAdMob();
-
-        if (!admob) {
-            // Dev/web fallback
-            setTimeout(() => this._onRewardSuccess(), 500);
-            return;
-        }
-
-        try {
-            if (this._mode === 'capacitor') {
-                const rewardListener = await admob.addListener('onRewardedVideoAdRewardedEvent', () => {
-                    rewardListener.remove();
-                    this._onRewardSuccess();
-                });
-                await admob.prepareRewardVideoAd({ adId: this.REWARDED_ID });
-                await admob.showRewardVideoAd();
-            } else if (this._mode === 'cordova') {
-                const rwAd = new admob.RewardedAd({ adUnitId: this.REWARDED_ID });
-                rwAd.on('reward', () => this._onRewardSuccess());
-                
-                await rwAd.load();
-                await rwAd.show();
-            }
-        } catch(e) {
-            console.warn('[AdMob] Rewarded error:', e);
-            this._onAdFailed();
-        }
+    showRewarded: function(onReward) {
+        document.addEventListener('onRewardedAd', function() { if (onReward) onReward(); }, {once:true});
+        admob.requestRewardedAd({adId: this.REWARD_ID, isTesting: this.TEST_MODE, autoShow: true});
     },
-
-    // ── Show Rewarded Interstitial — after level complete ─────────────────────
-    showRewardedInterstitial: async function(onReward) {
-        const admob = this._getAdMob();
-        if (!admob) { if (onReward) onReward(); return; }
-        try {
-            if (this._mode === 'capacitor') {
-                const rewardListener = await admob.addListener('onRewardedVideoAdRewardedEvent', () => {
-                    rewardListener.remove();
-                    if (onReward) onReward();
-                });
-                await admob.prepareRewardVideoAd({ adId: this.REWARDED_INTER_ID });
-                await admob.showRewardVideoAd();
-            } else if (this._mode === 'cordova') {
-                const rwAd = new admob.RewardedInterstitialAd({ adUnitId: this.REWARDED_INTER_ID });
-                if (onReward) rwAd.on('reward', () => onReward());
-                await rwAd.load();
-                await rwAd.show();
-            }
-        } catch(e) {
-            console.warn('[AdMob] Rewarded interstitial error:', e);
-            if (onReward) onReward();
-        }
-    },
-
+    showRewardedInterstitial: function(onReward) { this.showRewarded(onReward); }
 };
-// Init AdMob when platform is ready — works for Capacitor AND Cordova
 document.addEventListener('deviceready', () => AdManager.init(), false);
 
 const SafeStorage = {
