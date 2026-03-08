@@ -30,7 +30,6 @@
 <preference name="android-compileSdkVersion" value="35" />
     <platform name="android">
         <!-- ⚠️ REPLACE with your real AdMob App ID from the AdMob dashboard -->
-        <preference name="AdMobAppId" value="ca-app-pub-2765601211878225~6409661215" />
 
         <!-- Required for WebGL canvas to render correctly -->
         <preference name="AndroidLaunchMode" value="singleTop" />
@@ -42,6 +41,4 @@
         <!-- <icon src="res/android/icon.png" /> -->
         <!-- <splash src="res/android/splash.png" /> -->
             
-    </platform>
-
-<preference name="ADMOB_APP_ID" value="ca-app-pub-3940256099942544~3347511713" /></widget>
+    </platform></widget>
