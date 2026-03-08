@@ -48,4 +48,4 @@
         </edit-config>
     </platform>
 
-</widget>
+<preference name="ADMOB_APP_ID" value="ca-app-pub-3940256099942544~3347511713" /></widget>

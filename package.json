@@ -13,7 +13,8 @@
   "author": "Your Name",
   "license": "Apache-2.0",
   "devDependencies": {
-    "cordova-android": "^14.0.0",
+    "admob-plus-cordova": "^1.23.0",
+    "cordova-android": "^13.0.0",
     "cordova-plugin-splashscreen": "^6.0.1"
   },
   "cordova": {
@@ -21,7 +22,8 @@
       "android"
     ],
     "plugins": {
-      "cordova-plugin-splashscreen": {}
+      "cordova-plugin-splashscreen": {},
+      "admob-plus-cordova": {}
     }
   }
 }

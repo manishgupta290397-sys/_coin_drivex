@@ -21,7 +21,7 @@ jobs:
       - name: Install plugins
         run: |
           cordova plugin add cordova-plugin-splashscreen
-          cordova plugin add cordova-admob-free --save
+          cordova plugin add cordova-plugin-admob-free --save
       - name: Build APK
         run: cordova build android
       - name: Upload APK
