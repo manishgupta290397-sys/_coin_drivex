@@ -740,44 +740,29 @@ const AdManager = {
     interstitialCounter: 0,
     interstitialFrequency: 1,
     _interstitial: null,
-    _ready: false,
-    init: async function() {
-        try {
-            await Promise.race([admob.start(), new Promise(r => setTimeout(r, 4000))]);
-            alert('OK: admob started!');
-        } catch(e) { alert('FAIL start: ' + e); }
-        try {
-            alert('Creating InterstitialAd...');
-            this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
-            alert('Created! Now loading...');
-            const loadResult = await Promise.race([this._interstitial.load(), new Promise((r,j) => setTimeout(() => j('TIMEOUT'), 10000))]);
-            this._ready = true;
-            alert('OK: interstitial loaded! result:' + JSON.stringify(loadResult));
-        } catch(e) { alert('FAIL load: ' + e); }
+    init: function() {
+        admob.start().then(function() {
+            var ad = new admob.InterstitialAd({ adUnitId: 'ca-app-pub-3940256099942544/1033173712' });
+            ad.on('load', function() { alert('INTERSTITIAL LOADED!'); AdManager._interstitial = ad; });
+            ad.on('loadfail', function(e) { alert('LOAD FAILED: ' + JSON.stringify(e)); });
+            ad.load();
+        });
     },
-    showInterstitial: async function() {
+    showInterstitial: function() {
         this.interstitialCounter++;
         if (this.interstitialCounter < this.interstitialFrequency) return;
         this.interstitialCounter = 0;
-        try {
-            await this._interstitial.show();
-            this._ready = false;
-            this._interstitial = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
-            await this._interstitial.load();
-            this._ready = true;
-        } catch(e) { console.warn('[AdMob] inter error:', e); }
+        this._interstitial.show();
     },
-    showRewarded: async function(onReward) {
-        try {
-            const ad = new admob.RewardedAd({ adUnitId: this.REWARD_ID });
-            ad.on('reward', () => { if (onReward) onReward(); });
-            await ad.load();
-            await ad.show();
-        } catch(e) { console.warn('[AdMob] reward error:', e); if (onReward) onReward(); }
+    showRewarded: function(onReward) {
+        var ad = new admob.RewardedAd({ adUnitId: 'ca-app-pub-3940256099942544/5224354917' });
+        ad.on('reward', function() { if (onReward) onReward(); });
+        ad.on('loadfail', function(e) { alert('REWARD FAIL: ' + JSON.stringify(e)); if (onReward) onReward(); });
+        ad.load().then(function() { ad.show(); });
     },
-    showRewardedInterstitial: async function(onReward) { this.showRewarded(onReward); }
+    showRewardedInterstitial: function(onReward) { this.showRewarded(onReward); }
 };
-document.addEventListener('deviceready', () => AdManager.init(), false);
+document.addEventListener('deviceready', function() { AdManager.init(); }, false);
 
 const SafeStorage = {
     getItem: function(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
