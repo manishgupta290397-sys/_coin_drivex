@@ -22,9 +22,9 @@ jobs:
         run: |
           cordova plugin add cordova-plugin-splashscreen
           cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
-      - name: Build APK
+      - name: First build (generates gradlew + manifest)
         run: cordova build android
-      - name: Inject AdMob ID + copy cordova files + rebuild
+      - name: Inject AdMob ID into manifest
         run: |
           node -e "
           const fs = require('fs');
@@ -35,12 +35,14 @@ jobs:
             m = m.replace('</application>', tag + '\n    </application>');
             fs.writeFileSync(p, m);
           }
-          console.log(m.includes('APPLICATION_ID') ? 'APP ID INJECTED' : 'INJECTION FAILED');
+          console.log(m.includes('APPLICATION_ID') ? 'APP ID INJECTED OK' : 'FAILED');
           "
-          cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
-          ls platforms/android/
-          ls platforms/android/gradlew 2>/dev/null || echo "gradlew not in root"
-          find platforms/android -name "gradlew" -type f
+      - name: Copy cordova files into game folder
+        run: cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
+      - name: Recompile with injected manifest
+        run: |
+          chmod +x platforms/android/gradlew
+          cd platforms/android && ./gradlew assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
