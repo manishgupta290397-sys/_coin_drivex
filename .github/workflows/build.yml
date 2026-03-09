@@ -22,12 +22,28 @@ jobs:
         run: |
           cordova plugin add cordova-plugin-splashscreen
           cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
-      - name: Build APK
-        run: cordova build android
-      - name: Copy cordova files into game folder and recompile
+      - name: Prepare android
+        run: cordova prepare android
+      - name: Inject AdMob App ID via node
         run: |
-          cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
-          cd platforms/android && ./gradlew assembleDebug
+          node -e "
+          const fs = require('fs');
+          const path = 'platforms/android/app/src/main/AndroidManifest.xml';
+          let m = fs.readFileSync(path, 'utf8');
+          const tag = '<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-2765601211878225~6409661215\"/>';
+          if (!m.includes('APPLICATION_ID')) {
+            m = m.replace('</application>', tag + '\n    </application>');
+            fs.writeFileSync(path, m);
+            console.log('INJECTED!');
+          } else {
+            console.log('Already present');
+          }
+          console.log(m.includes('APPLICATION_ID') ? 'VERIFIED OK' : 'FAILED');
+          "
+      - name: Copy cordova files into game folder
+        run: cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
+      - name: Compile with gradlew clean
+        run: cd platforms/android && ./gradlew clean assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
