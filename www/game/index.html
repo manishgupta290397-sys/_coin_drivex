@@ -740,27 +740,22 @@ const AdManager = {
     interstitialFrequency: 1,
     _interstitial: null,
     init: function() {
-        admob.start().then(function() {
-            alert('admob started - loading interstitial...');
-            AdManager._loadInterstitial();
-        }).catch(function(e) { alert('start failed: ' + e); });
+        alert('admob found, skipping start(), loading in 3s...');
+        setTimeout(function() { AdManager._loadInterstitial(); }, 3000);
     },
     _loadInterstitial: function() {
-        var ad = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
-        document.addEventListener('admob.ad.load', function handler(e) {
-            if (e.ad === ad) {
-                document.removeEventListener('admob.ad.load', handler);
-                alert('INTERSTITIAL LOADED via document event!');
+        try {
+            alert('creating ad now...');
+            var ad = new admob.InterstitialAd({ adUnitId: AdManager.INTER_ID });
+            ad.on('load', function() {
+                alert('AD LOADED!');
                 AdManager._interstitial = ad;
-            }
-        });
-        document.addEventListener('admob.ad.load_fail', function handler(e) {
-            if (e.ad === ad) {
-                document.removeEventListener('admob.ad.load_fail', handler);
+            });
+            ad.on('loadfail', function(e) {
                 alert('LOAD FAIL: ' + JSON.stringify(e));
-            }
-        });
-        ad.load().catch(function(e) { alert('load() threw: ' + e); });
+            });
+            ad.load().catch(function(e) { alert('load threw: ' + e); });
+        } catch(e) { alert('create threw: ' + e); }
     },
     showInterstitial: function() {
         this.interstitialCounter++;
@@ -769,16 +764,15 @@ const AdManager = {
         var ad = this._interstitial;
         this._interstitial = null;
         setTimeout(function() {
-            ad.show().then(function() { AdManager._loadInterstitial(); }).catch(function(){});
-        }, 500);
+            ad.show().then(function() { AdManager._loadInterstitial(); }).catch(function(e){ alert('show err:'+e); });
+        }, 300);
     },
     showRewarded: function(onReward) {
-        var ad = new admob.RewardedAd({ adUnitId: this.REWARD_ID });
-        document.addEventListener('admob.ad.reward', function h() {
-            document.removeEventListener('admob.ad.reward', h);
-            if (onReward) onReward();
-        });
-        ad.load().then(function() { ad.show(); }).catch(function() { if (onReward) onReward(); });
+        try {
+            var ad = new admob.RewardedAd({ adUnitId: AdManager.REWARD_ID });
+            ad.on('reward', function() { if (onReward) onReward(); });
+            ad.load().then(function() { ad.show(); }).catch(function() { if (onReward) onReward(); });
+        } catch(e) { if (onReward) onReward(); }
     },
     showRewardedInterstitial: function(onReward) { this.showRewarded(onReward); }
 };
