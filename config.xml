@@ -40,4 +40,7 @@
         <!-- App icon and splash (add your own images) -->
         <!-- <icon src="res/android/icon.png" /> -->
         <!-- <splash src="res/android/splash.png" /> -->
+        <config-file parent="/manifest/application" target="AndroidManifest.xml">
+            <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2765601211878225~6409661215" />
+        </config-file>
     </platform></widget>

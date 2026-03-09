@@ -24,11 +24,8 @@ jobs:
           cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
       - name: Build APK
         run: cordova build android
-      - name: Inject AdMob ID and copy cordova files then recompile
+      - name: Copy cordova files into game folder and recompile
         run: |
-          MANIFEST=platforms/android/app/src/main/AndroidManifest.xml
-          sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2765601211878225~6409661215"/>\n    </application>|' $MANIFEST
-          grep "APPLICATION_ID" $MANIFEST && echo "APP ID INJECTED!" || echo "INJECTION FAILED"
           cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
           cd platforms/android && ./gradlew assembleDebug
       - name: Upload APK
