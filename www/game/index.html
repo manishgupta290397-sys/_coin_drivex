@@ -734,7 +734,6 @@ window.onerror = function(message, source, lineno, colno, error) {
 // Replace the zone IDs below with your real ones from Adsterra dashboard.
 // ─────────────────────────────────────────────────────────────────────────────
 const AdManager = {
-    TEST_MODE: true,
     INTER_ID:  'ca-app-pub-3940256099942544/1033173712',
     REWARD_ID: 'ca-app-pub-3940256099942544/5224354917',
     interstitialCounter: 0,
@@ -742,23 +741,44 @@ const AdManager = {
     _interstitial: null,
     init: function() {
         admob.start().then(function() {
-            var ad = new admob.InterstitialAd({ adUnitId: 'ca-app-pub-3940256099942544/1033173712' });
-            ad.on('load', function() { alert('INTERSTITIAL LOADED!'); AdManager._interstitial = ad; });
-            ad.on('loadfail', function(e) { alert('LOAD FAILED: ' + JSON.stringify(e)); });
-            ad.load();
+            alert('admob started - loading interstitial...');
+            AdManager._loadInterstitial();
+        }).catch(function(e) { alert('start failed: ' + e); });
+    },
+    _loadInterstitial: function() {
+        var ad = new admob.InterstitialAd({ adUnitId: this.INTER_ID });
+        document.addEventListener('admob.ad.load', function handler(e) {
+            if (e.ad === ad) {
+                document.removeEventListener('admob.ad.load', handler);
+                alert('INTERSTITIAL LOADED via document event!');
+                AdManager._interstitial = ad;
+            }
         });
+        document.addEventListener('admob.ad.load_fail', function handler(e) {
+            if (e.ad === ad) {
+                document.removeEventListener('admob.ad.load_fail', handler);
+                alert('LOAD FAIL: ' + JSON.stringify(e));
+            }
+        });
+        ad.load().catch(function(e) { alert('load() threw: ' + e); });
     },
     showInterstitial: function() {
         this.interstitialCounter++;
         if (this.interstitialCounter < this.interstitialFrequency) return;
         this.interstitialCounter = 0;
-        this._interstitial.show();
+        var ad = this._interstitial;
+        this._interstitial = null;
+        setTimeout(function() {
+            ad.show().then(function() { AdManager._loadInterstitial(); }).catch(function(){});
+        }, 500);
     },
     showRewarded: function(onReward) {
-        var ad = new admob.RewardedAd({ adUnitId: 'ca-app-pub-3940256099942544/5224354917' });
-        ad.on('reward', function() { if (onReward) onReward(); });
-        ad.on('loadfail', function(e) { alert('REWARD FAIL: ' + JSON.stringify(e)); if (onReward) onReward(); });
-        ad.load().then(function() { ad.show(); });
+        var ad = new admob.RewardedAd({ adUnitId: this.REWARD_ID });
+        document.addEventListener('admob.ad.reward', function h() {
+            document.removeEventListener('admob.ad.reward', h);
+            if (onReward) onReward();
+        });
+        ad.load().then(function() { ad.show(); }).catch(function() { if (onReward) onReward(); });
     },
     showRewardedInterstitial: function(onReward) { this.showRewarded(onReward); }
 };
@@ -3413,7 +3433,7 @@ class Game {
         
         this.saveProgress();
 
-        AdManager.showInterstitial();
+        setTimeout(function(){ AdManager.showInterstitial(); }, 100);
 
         const reviveBtn = document.getElementById('btn-revive');
         if(this.reviveToken > 0 && !this.reviveUsed) { reviveBtn.classList.remove('hidden'); reviveBtn.innerText = `USE REVIVE (${this.reviveToken} LEFT)`; } 
