@@ -34,16 +34,15 @@ jobs:
           if (!m.includes('APPLICATION_ID')) {
             m = m.replace('</application>', tag + '\n    </application>');
             fs.writeFileSync(path, m);
-            console.log('INJECTED!');
-          } else {
-            console.log('Already present');
           }
-          console.log(m.includes('APPLICATION_ID') ? 'VERIFIED OK' : 'FAILED');
+          console.log(m.includes('APPLICATION_ID') ? 'INJECTED OK' : 'FAILED');
           "
       - name: Copy cordova files into game folder
         run: cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
-      - name: Compile with gradlew clean
-        run: cd platforms/android && ./gradlew clean assembleDebug
+      - name: Compile APK
+        run: |
+          chmod +x platforms/android/gradlew
+          cd platforms/android && ./gradlew assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
