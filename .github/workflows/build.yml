@@ -22,30 +22,25 @@ jobs:
         run: |
           cordova plugin add cordova-plugin-splashscreen
           cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
-      - name: Prepare android
-        run: cordova prepare android
-      - name: Inject AdMob App ID
+      - name: Build APK
+        run: cordova build android
+      - name: Inject AdMob ID + copy cordova files + rebuild
         run: |
           node -e "
           const fs = require('fs');
-          const path = 'platforms/android/app/src/main/AndroidManifest.xml';
-          let m = fs.readFileSync(path, 'utf8');
+          const p = 'platforms/android/app/src/main/AndroidManifest.xml';
+          let m = fs.readFileSync(p, 'utf8');
           const tag = '<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-2765601211878225~6409661215\"/>';
           if (!m.includes('APPLICATION_ID')) {
             m = m.replace('</application>', tag + '\n    </application>');
-            fs.writeFileSync(path, m);
+            fs.writeFileSync(p, m);
           }
-          console.log(m.includes('APPLICATION_ID') ? 'INJECTED OK' : 'FAILED');
+          console.log(m.includes('APPLICATION_ID') ? 'APP ID INJECTED' : 'INJECTION FAILED');
           "
-      - name: Copy cordova files into game folder
-        run: cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
-      - name: Find and run gradlew
-        run: |
-          find platforms -name "gradlew" 2>/dev/null
-          GRADLEW=$(find platforms -name "gradlew" | head -1)
-          chmod +x $GRADLEW
-          GRADLEW_DIR=$(dirname $GRADLEW)
-          cd $GRADLEW_DIR && ./gradlew assembleDebug
+          cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
+          ls platforms/android/
+          ls platforms/android/gradlew 2>/dev/null || echo "gradlew not in root"
+          find platforms/android -name "gradlew" -type f
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
