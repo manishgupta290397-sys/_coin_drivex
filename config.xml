@@ -44,4 +44,7 @@
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>
         </edit-config>
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2765601211878225~6409661215"/>
+        </edit-config>
     </platform></widget>

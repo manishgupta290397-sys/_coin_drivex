@@ -21,7 +21,7 @@ jobs:
       - name: Install plugins
         run: |
           cordova plugin add cordova-plugin-splashscreen
-          cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-3940256099942544~3347511713"
+          cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
       - name: Copy ALL cordova files into game folder
         run: cp -r platforms/android/platform_www/. www/game/
       - name: Build APK
