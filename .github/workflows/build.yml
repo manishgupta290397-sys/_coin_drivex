@@ -22,17 +22,15 @@ jobs:
         run: |
           cordova plugin add cordova-plugin-splashscreen
           cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
-      - name: Prepare
-        run: cordova prepare android
-      - name: Copy cordova files into game folder
-        run: cp -r platforms/android/platform_www/. www/game/
-      - name: Inject AdMob App ID into manifest
+      - name: Build APK
+        run: cordova build android
+      - name: Inject AdMob ID and copy cordova files then recompile
         run: |
           MANIFEST=platforms/android/app/src/main/AndroidManifest.xml
           sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2765601211878225~6409661215"/>\n    </application>|' $MANIFEST
-          grep "APPLICATION_ID" $MANIFEST && echo "SUCCESS" || echo "FAILED"
-      - name: Compile APK
-        run: cordova compile android
+          grep "APPLICATION_ID" $MANIFEST && echo "APP ID INJECTED!" || echo "INJECTION FAILED"
+          cp -r platforms/android/platform_www/. platforms/android/app/src/main/assets/www/game/
+          cd platforms/android && ./gradlew assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
