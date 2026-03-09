@@ -22,7 +22,13 @@ jobs:
         run: |
           cordova plugin add cordova-plugin-splashscreen
           cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --variable APP_ID_ANDROID="ca-app-pub-2765601211878225~6409661215"
-      - name: Copy ALL cordova files into game folder
+      - name: Inject AdMob App ID into AndroidManifest
+        run: |
+          MANIFEST=platforms/android/app/src/main/AndroidManifest.xml
+          sed -i 's|</application>|<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2765601211878225~6409661215"/></application>|' $MANIFEST
+          echo "Manifest after injection:"
+          grep -i "APPLICATION_ID\|ca-app-pub" $MANIFEST
+      - name: Copy cordova files into game folder
         run: cp -r platforms/android/platform_www/. www/game/
       - name: Build APK
         run: cordova build android

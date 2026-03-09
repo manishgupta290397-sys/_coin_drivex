@@ -40,7 +40,4 @@
         <!-- App icon and splash (add your own images) -->
         <!-- <icon src="res/android/icon.png" /> -->
         <!-- <splash src="res/android/splash.png" /> -->
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application" xmlns:android="http://schemas.android.com/apk/res/android">
-            <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2765601211878225~6409661215"/>
-        </edit-config>
     </platform></widget>
